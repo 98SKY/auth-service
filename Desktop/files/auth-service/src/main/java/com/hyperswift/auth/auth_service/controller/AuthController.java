@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collections;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -43,7 +44,10 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
         if (userService.existsByEmail(request.getEmail())) {
-            return ResponseEntity.badRequest().body("Email already in use");
+            return ResponseEntity.badRequest().body(Map.of(
+                    "status", "fail",
+                    "message", "Email already in use"
+            ));
         }
 
         Role userRole = roleRepository.findByName("ROLE_USER")
@@ -56,16 +60,32 @@ public class AuthController {
         userService.save(user);
 
         String token = jwtUtil.generateToken(user.getEmail());
-        return ResponseEntity.ok(new AuthResponse(token));
+        return ResponseEntity.ok(Map.of(
+                "status", "success",
+                "message", "User registered successfully",
+                "token", token
+        ));
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
-        Authentication auth = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-        );
+        try {
+            Authentication auth = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+            );
 
-        String token = jwtUtil.generateToken(request.getEmail());
-        return ResponseEntity.ok(new AuthResponse(token));
+            String token = jwtUtil.generateToken(request.getEmail());
+
+            return ResponseEntity.ok(Map.of(
+                    "status", "success",
+                    "message", "Login successful",
+                    "token", token
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body(Map.of(
+                    "status", "fail",
+                    "message", "Invalid email or password"
+            ));
+        }
     }
 }

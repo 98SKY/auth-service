@@ -1,7 +1,8 @@
-package com.hyperswift.auth.auth_service.service;
+package com.hyperswift.auth.auth_service.service.Impl;
 
 import com.hyperswift.auth.auth_service.entity.User;
 import com.hyperswift.auth.auth_service.repository.UserRepository;
+import com.hyperswift.auth.auth_service.service.UserService;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
